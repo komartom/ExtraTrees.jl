@@ -1,5 +1,10 @@
 module ExtraTrees
 
-# package code goes here
+export Model
+
+include("./Struct.jl")
+include("./Tree.jl")
+include("./Model.jl")
+
 
 end # module
