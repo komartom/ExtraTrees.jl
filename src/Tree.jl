@@ -106,7 +106,7 @@ function split!(node, X, Y, opt)
         end
 
         for tt in 1:opt.n_thresholds
-            threshold = minv + (maxv - minv) * rand()
+            threshold = minv + (maxv - minv) * rand(Float32)
             split = entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, threshold)
             if best_split.cost > split.cost
                 best_split = split
