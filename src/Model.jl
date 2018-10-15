@@ -13,10 +13,12 @@ immutable Model
 
         @assert size(X, 1) == length(Y)
 
+        XS = SharedArray(X)
+
         tic()
 
         return new(
-            pmap((arg)->tree_builder(X, Y, opt), 1:opt.n_trees),
+            pmap((arg)->tree_builder(XS, Y, opt), 1:opt.n_trees),
             opt,
             size(X, 1),
             size(X, 2),

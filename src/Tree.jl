@@ -151,7 +151,7 @@ function split!(node, X, Y, opt)
 end
 
 
-function tree_builder(X::Matrix{Float32}, Y::BitArray{1}, opt::Options)
+function tree_builder(X::SharedArray{Float32,2}, Y::BitArray{1}, opt::Options)
 
     stack = Node[]
 
