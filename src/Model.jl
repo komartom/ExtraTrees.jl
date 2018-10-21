@@ -2,29 +2,28 @@ immutable Model
 
     trees::Vector{Node}
     options::Options
+    metadata::Metadata
 
-    n_samples::Int
-    n_features::Int
-    n_pos_samples::Int
-    n_neg_samples::Int
-    trainingtime::Float64
-
-    function Model(X::Matrix{Float32}, Y::BitArray{1}, opt::Options)
+    function Model(X::Matrix{Float32}, Y::BitArray{1}, opt::Options, description::String="none")
 
         @assert size(X, 1) == length(Y)
 
         XS = SharedArray(X)
 
         tic()
+        trees = pmap((arg)->tree_builder(XS, Y, opt), 1:opt.n_trees)
+        trainingtime = toq()
 
-        return new(
-            pmap((arg)->tree_builder(XS, Y, opt), 1:opt.n_trees),
-            opt,
-            size(X, 1),
+        meta = Metadata(
             size(X, 2),
             sum(Y),
             sum(.!Y),
-            toq())
+            description,
+            trainingtime,
+            mean([tree_depth(tree) for tree in trees])
+            )
+
+        return new(trees, opt, meta)
 
     end
 
@@ -40,23 +39,28 @@ Model(X, Y;
     min_samples_split::Int=2,
     description::String="none"
     ) =
-    Model(X, Y, Options(
-        n_trees,
-        (1 <= n_subfeat <= size(X, 2)) ? n_subfeat : round(Int, sqrt(size(X, 2))),
-        n_thresholds,
-        max_depth,
-        min_samples_leaf,
-        min_samples_split,
+    Model(X, Y,
+        Options(
+            n_trees,
+            (1 <= n_subfeat <= size(X, 2)) ? n_subfeat : round(Int, sqrt(size(X, 2))),
+            n_thresholds,
+            max_depth,
+            min_samples_leaf,
+            min_samples_split
+            ),
         description
-    ))
+    )
 
 
 Base.show(io::IO, ::MIME"text/plain", model::Model) = print(io,
+    "Model: ExtraTrees\n",
     "Trees: ", length(model.trees), "\n",
-    "Avg. depth: ", round(mean([tree_depth(tree) for tree in model.trees]), 1), "\n",
-    "Training time: ", round(model.trainingtime, 2), " sec\n",
-    "Training samples: ", model.n_samples, "\n",
-    "Description: ", model.options.description, "\n"
+    "Data features: ", model.metadata.n_features, "\n",
+    "Average depth: ", round(model.metadata.avg_tree_depth, 1), "\n",
+    "Training time: ", round(model.metadata.trainingtime, 2), " sec\n",
+    "Training pos samples: ", model.metadata.n_pos_samples, "\n",
+    "Training neg samples: ", model.metadata.n_neg_samples, "\n",
+    "Custom description: ", model.metadata.description, "\n"
     )
 
 
@@ -73,6 +77,8 @@ end
 
 function (model::Model)(sample::Vector{Float32})
 
+    @assert model.metadata.n_features == length(sample)
+
     probability = 0.0
 
     for tree in model.trees
@@ -86,7 +92,7 @@ end
 
 function (model::Model)(X::Matrix{Float32})
 
-    @assert model.n_features == size(X, 2)
+    @assert model.metadata.n_features == size(X, 2)
 
     return [model(X[ss, :]) for ss in 1:size(X, 1)]
 

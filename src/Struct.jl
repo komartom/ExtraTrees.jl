@@ -44,9 +44,8 @@ immutable Options
     max_depth::Int
     min_samples_leaf::Int
     min_samples_split::Int
-    description::String
 
-    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, description)
+    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split)
 
         @assert n_trees >= 1
         @assert n_subfeat >= 1
@@ -54,8 +53,20 @@ immutable Options
         @assert min_samples_leaf >= 1
         @assert min_samples_split >= 1
 
-        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, description)
+        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split)
 
     end
+
+end
+
+
+immutable Metadata
+
+    n_features::Int
+    n_pos_samples::Int
+    n_neg_samples::Int
+    description::String
+    trainingtime::Float64
+    avg_tree_depth::Float64
 
 end
