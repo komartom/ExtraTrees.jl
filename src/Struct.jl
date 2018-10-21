@@ -16,7 +16,7 @@ mutable struct Node
 
     depth::Int
     is_leaf::Bool
-    probability::Float64
+    probability::Float32
 
     left::Node
     right::Node

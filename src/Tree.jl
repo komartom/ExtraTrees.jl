@@ -61,8 +61,8 @@ function split!(node, X, Y, opt)
     node.probability = n_pos_samples / n_samples
 
     if node.depth == opt.max_depth ||
-        node.probability == 1.0 ||
-        node.probability == 0.0 ||
+        node.probability == 1.0f0 ||
+        node.probability == 0.0f0 ||
         n_samples < opt.min_samples_split ||
         n_samples == opt.min_samples_leaf
         free!(node)

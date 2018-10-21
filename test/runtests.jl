@@ -12,7 +12,7 @@ Yconst = rand(size(Xconst, 1)) .> 0.5
 model = Model(Xconst, Yconst)
 
 @test model.trees[1].is_leaf == true
-@test model.trees[1].probability .== mean(Yconst)
+@test model.trees[1].probability .== Float32(mean(Yconst))
 @test ExtraTrees.tree_depth(model.trees[1]) == 1
 @test ExtraTrees.tree_nodes(model.trees[1]) == 1
 @test ExtraTrees.tree_leaves(model.trees[1]) == 1
@@ -34,7 +34,7 @@ model = Model(Xrand, Yrand, max_depth=2)
 model = Model(Xrand, Yrand, min_samples_leaf=length(Yrand))
 
 @test model.trees[1].is_leaf == true
-@test model.trees[1].probability .== mean(Yrand)
+@test model.trees[1].probability .== Float32(mean(Yrand))
 @test ExtraTrees.tree_depth(model.trees[1]) == 1
 
 ################
