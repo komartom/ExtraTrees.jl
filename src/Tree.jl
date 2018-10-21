@@ -127,8 +127,7 @@ function split!(node, X, Y, opt)
     node.is_leaf = false
     node.split = best_split
 
-    ll = 1
-    rr = 1
+    ll, rr = 1, 1
     left_samples = Vector{Int}(best_split.n_left)
     right_samples = Vector{Int}(best_split.n_right)
     for ss in node.samples
@@ -153,17 +152,14 @@ end
 
 function tree_builder(X::SharedArray{Float32,2}, Y::BitArray{1}, opt::Options)
 
-    stack = Node[]
-
     root = Node(1, collect(1:size(X, 1)), collect(1:size(X, 2)))
-    push!(stack, root)
 
+    stack = Node[root]
     while length(stack) > 0
         node = pop!(stack)
         split!(node, X, Y, opt)
         if !node.is_leaf
-            push!(stack, node.left)
-            push!(stack, node.right)
+            push!(stack, node.left, node.right)
         end
     end
 
