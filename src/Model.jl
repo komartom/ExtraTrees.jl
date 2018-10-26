@@ -79,7 +79,7 @@ function (model::Model)(sample::Vector{Float32})
 
     @assert model.metadata.n_features == length(sample)
 
-    probability = 0.0
+    probability = 0.0f0
 
     for tree in model.trees
         probability += tree(sample)
