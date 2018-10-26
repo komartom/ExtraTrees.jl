@@ -1,3 +1,15 @@
+immutable Metadata
+
+    n_features::Int
+    n_pos_samples::Int
+    n_neg_samples::Int
+    description::String
+    trainingtime::Float64
+    avg_tree_depth::Float64
+
+end
+
+
 immutable Model
 
     trees::Vector{Node}

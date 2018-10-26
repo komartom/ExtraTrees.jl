@@ -1,3 +1,67 @@
+immutable Options
+
+    n_trees::Int
+    n_subfeat::Int
+    n_thresholds::Int
+    max_depth::Int
+    min_samples_leaf::Int
+    min_samples_split::Int
+
+    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split)
+
+        @assert n_trees >= 1
+        @assert n_subfeat >= 1
+        @assert n_thresholds >= 1
+        @assert min_samples_leaf >= 1
+        @assert min_samples_split >= 1
+
+        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split)
+
+    end
+
+end
+
+
+immutable Split
+
+    cost::Float64
+    feature::Int
+    threshold::Float32
+
+    n_left::Int
+    n_right::Int
+
+end
+
+Split() = Split(Inf, 0, 0.0f0, 0, 0)
+
+
+mutable struct Node
+
+    id::Int
+
+    depth::Int
+    is_leaf::Bool
+    probability::Float32
+
+    left::Node
+    right::Node
+    split::Split
+
+    samples::Vector{Int}
+    features::Vector{Int}
+
+    Node(depth, samples, features) = (
+        node = new();
+        node.depth = depth;
+        node.is_leaf = true;
+        node.samples = samples;
+        node.features = features;
+        node)
+
+end
+
+
 function entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, threshold)
 
     n_left_pos = 0

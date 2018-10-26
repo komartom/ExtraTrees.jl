@@ -68,17 +68,21 @@ Xtest = D[301:end, 2:end]
 
 tree = Model(Xtrain, Ytrain)
 forest = Model(Xtrain, Ytrain, n_trees=100)
+flatten_forest = FlattenModel(Xtrain, Ytrain, n_trees=100)
 
 acc_tree = mean(Ytest .== (tree(Xtest) .> 0.5))
 acc_forest = mean(Ytest .== (forest(Xtest) .> 0.5))
+acc_flatten_forest = mean(Ytest .== (flatten_forest(Xtest) .> 0.5))
 
 @test acc_tree > 0.5
 @test acc_forest > 0.98
+@test acc_flatten_forest > 0.98
 @test acc_forest >= acc_tree
 
-################
+#################
 
-totally = Model(Xtrain, Ytrain, n_trees=100, n_subfeat=1)
+flatten_forest = FlattenModel(forest)
 
-@test mean([ExtraTrees.tree_depth(tree) for tree in totally.trees]) >=
-    mean([ExtraTrees.tree_depth(tree) for tree in forest.trees])
+@test flatten_forest(Xtest[1, :]) == forest(Xtest[1, :])
+@test all(flatten_forest(Xtest) .== forest(Xtest))
+@test all(flatten_forest(SharedArray(Xtest)) .== forest(Xtest))

@@ -1,10 +1,9 @@
 module ExtraTrees
 
-export Model
+export Model, FlattenModel
 
-include("./Struct.jl")
 include("./Tree.jl")
 include("./Model.jl")
-
+include("./FlattenModel.jl")
 
 end # module
