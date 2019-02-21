@@ -1,0 +1,11 @@
+name = "ExtraTrees"
+uuid = "c94ee2c6-35dc-11e9-3ac8-13634720c811"
+authors = ["Tomas Komarek"]
+version = "0.1.0"
+
+[deps]
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
+SharedArrays = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

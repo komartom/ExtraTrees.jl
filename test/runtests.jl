@@ -1,9 +1,4 @@
-using ExtraTrees
-@static if VERSION < v"0.7.0-DEV.2005"
-    using Base.Test
-else
-    using Test
-end
+using Test, ExtraTrees, SharedArrays, DelimitedFiles, Statistics
 
 
 Xconst = ones(Float32, 1000, 10)
@@ -58,7 +53,7 @@ model = Model(Xoptim, Yoptim, n_subfeat=size(Xoptim, 2))
 
 ################
 
-D = readcsv("./digits-01.csv", Float32)
+D = readdlm("./digits-01.csv", ',', Float32)
 
 Ytrain = D[1:300, 1] .== 1.0
 Xtrain = D[1:300, 2:end]

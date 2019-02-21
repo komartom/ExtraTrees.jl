@@ -1,4 +1,4 @@
-immutable Options
+struct Options
 
     n_trees::Int
     n_subfeat::Int
@@ -22,7 +22,7 @@ immutable Options
 end
 
 
-immutable Split
+struct Split
 
     cost::Float64
     feature::Int
@@ -138,7 +138,7 @@ function split!(node, X, Y, opt)
     first_usable_feat = 1
     last_nonconst_feat = length(node.features)
 
-    V = Vector{Float32}(n_samples)
+    V = Vector{Float32}(undef, n_samples)
 
     mtry = 1
     while (mtry <= opt.n_subfeat) &&
@@ -192,8 +192,8 @@ function split!(node, X, Y, opt)
     node.split = best_split
 
     ll, rr = 1, 1
-    left_samples = Vector{Int}(best_split.n_left)
-    right_samples = Vector{Int}(best_split.n_right)
+    left_samples = Vector{Int}(undef, best_split.n_left)
+    right_samples = Vector{Int}(undef, best_split.n_right)
     for ss in node.samples
         if X[ss, best_split.feature] < best_split.threshold
             left_samples[ll] = ss

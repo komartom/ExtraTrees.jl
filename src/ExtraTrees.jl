@@ -1,5 +1,7 @@
 module ExtraTrees
 
+using Statistics, Distributed, SharedArrays
+
 export Model, FlattenModel
 
 include("./Tree.jl")

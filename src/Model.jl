@@ -1,4 +1,4 @@
-immutable Metadata
+struct Metadata
 
     n_features::Int
     n_pos_samples::Int
@@ -10,7 +10,7 @@ immutable Metadata
 end
 
 
-immutable Model
+struct Model
 
     trees::Vector{Node}
     options::Options
@@ -22,9 +22,9 @@ immutable Model
 
         XS = SharedArray(X)
 
-        tic()
+        starttime = time_ns()
         trees = pmap((arg)->tree_builder(XS, Y, opt), 1:opt.n_trees)
-        trainingtime = toq()
+        trainingtime = (time_ns() - starttime)/10^9 
 
         meta = Metadata(
             size(X, 2),
@@ -68,8 +68,8 @@ Base.show(io::IO, ::MIME"text/plain", model::Model) = print(io,
     "Model: ExtraTrees\n",
     "Trees: ", length(model.trees), "\n",
     "Data features: ", model.metadata.n_features, "\n",
-    "Average depth: ", round(model.metadata.avg_tree_depth, 1), "\n",
-    "Training time: ", round(model.metadata.trainingtime, 2), " sec\n",
+    "Average depth: ", round(model.metadata.avg_tree_depth, digits=1), "\n",
+    "Training time: ", round(model.metadata.trainingtime, digits=2), " sec\n",
     "Training pos samples: ", model.metadata.n_pos_samples, "\n",
     "Training neg samples: ", model.metadata.n_neg_samples, "\n",
     "Custom description: ", model.metadata.description, "\n"

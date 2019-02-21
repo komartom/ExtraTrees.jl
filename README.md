@@ -9,16 +9,16 @@ Julia implementation of Extremely (Totally) Randomized Trees
 
 ## Installation
 ```julia
-Pkg.clone("https://github.com/komartom/ExtraTrees.jl.git")
+] add https://github.com/komartom/ExtraTrees.jl.git
 ```
 
 ## Simple example
 5-times repeated 10-fold cross-validation on Ionosphere dataset
 ```julia
-using ExtraTrees
+using ExtraTrees, DelimitedFiles, Statistics, Printf
 
 download("https://archive.ics.uci.edu/ml/machine-learning-databases/ionosphere/ionosphere.data", "ionosphere.csv")
-D = readcsv("ionosphere.csv")
+D = readdlm("ionosphere.csv", ',')
 X = convert(Matrix{Float32}, D[:, 1:end-1])
 Y = D[:, end] .== "g"
 
@@ -46,7 +46,7 @@ for rr in 1:REPETITIONS
 
 end
 
-print(@sprintf("Accuracy: %0.2f", mean(mean(accuracy, 1)))) #Accuracy: 0.94
+print(@sprintf("Accuracy: %0.2f", mean(mean(accuracy, dims=1)))) #Accuracy: 0.94
 ```
 
 ## Options
