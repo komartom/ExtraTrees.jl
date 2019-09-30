@@ -143,6 +143,41 @@ function (model::FlattenModel)(X::Matrix{Float32})
 end
 
 
+function (model::FlattenModel)(sample::Vector{Float32}, alpha::Float32)
+
+    @assert model.metadata.n_features == length(sample)
+
+    max_probability = 0.0f0
+    mean_probability = 0.0f0
+
+    for tree in model.trees
+
+        probability = tree(sample)
+
+        mean_probability += probability 
+        
+        if (probability > max_probability)
+            max_probability = probability
+        end
+
+    end
+
+    mean_probability /= length(model.trees)
+
+    return (alpha * max_probability) + ((1.0f0 - alpha) * mean_probability)
+
+end
+
+
+function (model::FlattenModel)(X::Matrix{Float32}, alpha::Float32)
+
+    @assert model.metadata.n_features == size(X, 2)
+
+    return [model(X[ss, :], alpha) for ss in 1:size(X, 1)]
+
+end
+
+
 function (model::FlattenModel)(XS::SharedArray{Float32}, range::UnitRange{Int64})
 
     @assert model.metadata.n_features == size(XS, 2)
