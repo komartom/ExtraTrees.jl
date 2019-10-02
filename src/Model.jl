@@ -49,7 +49,8 @@ Model(X, Y;
     max_depth::Int=-1,
     min_samples_leaf::Int=1,
     min_samples_split::Int=2,
-    description::String="none"
+    description::String="none",
+    beta::Float64=0.5
     ) =
     Model(X, Y,
         Options(
@@ -58,7 +59,8 @@ Model(X, Y;
             n_thresholds,
             max_depth,
             min_samples_leaf,
-            min_samples_split
+            min_samples_split,
+            beta
             ),
         description
     )

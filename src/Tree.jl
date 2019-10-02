@@ -6,16 +6,18 @@ struct Options
     max_depth::Int
     min_samples_leaf::Int
     min_samples_split::Int
+    beta::Float64
 
-    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split)
+    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, beta)
 
         @assert n_trees >= 1
         @assert n_subfeat >= 1
         @assert n_thresholds >= 1
         @assert min_samples_leaf >= 1
         @assert min_samples_split >= 1
+        @assert 0 <= beta <= 1
 
-        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split)
+        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, beta)
 
     end
 
@@ -62,7 +64,7 @@ mutable struct Node
 end
 
 
-function entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, threshold)
+function entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, threshold, beta)
 
     n_left_pos = 0
     n_left_neg = 0
@@ -81,8 +83,8 @@ function entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, th
     w_left = n_left / n_samples
     p_left_pos = n_left_pos / n_left
     p_left_neg = 1.0 - p_left_pos
-    entropy_left = (p_left_neg == 0.0) ? 0.0 : -p_left_neg*log2(p_left_neg)
-    entropy_left += (p_left_pos == 0.0) ? 0.0 : -p_left_pos*log2(p_left_pos)
+    entropy_left = (p_left_neg == 0.0) ? 0.0 : -p_left_neg*log2(p_left_neg)*beta
+    entropy_left += (p_left_pos == 0.0) ? 0.0 : -p_left_pos*log2(p_left_pos)*(1-beta)
 
     n_right_pos = n_pos_samples - n_left_pos
     n_right_neg = n_neg_samples - n_left_neg
@@ -91,8 +93,8 @@ function entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, th
     w_right = n_right / n_samples
     p_right_pos = n_right_pos / n_right
     p_right_neg = 1.0 - p_right_pos
-    entropy_right = (p_right_neg == 0.0) ? 0.0 : -p_right_neg*log2(p_right_neg)
-    entropy_right += (p_right_pos == 0.0) ? 0.0 : -p_right_pos*log2(p_right_pos)
+    entropy_right = (p_right_neg == 0.0) ? 0.0 : -p_right_neg*log2(p_right_neg)*beta
+    entropy_right += (p_right_pos == 0.0) ? 0.0 : -p_right_pos*log2(p_right_pos)*(1-beta)
 
     cost = (w_left * entropy_left) + (w_right * entropy_right)
 
@@ -171,7 +173,7 @@ function split!(node, X, Y, opt)
 
         for tt in 1:opt.n_thresholds
             threshold = minv + (maxv - minv) * rand(Float32)
-            split = entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, threshold)
+            split = entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, threshold, opt.beta)
             if best_split.cost > split.cost
                 best_split = split
             end
