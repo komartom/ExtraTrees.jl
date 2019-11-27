@@ -16,11 +16,11 @@ struct Model
     options::Options
     metadata::Metadata
 
-    function Model(X::Matrix{Float32}, Y::BitArray{1}, opt::Options, description::String="none")
+    function Model(X::T, Y::BitArray{1}, opt::Options, description::String="none") where T <: Union{Matrix{Float32}, SharedArray{Float32,2}}
 
         @assert size(X, 1) == length(Y)
 
-        XS = SharedArray(X)
+        XS = typeof(X) != SharedArray{Float32,2} ? SharedArray(X) : X
 
         starttime = time_ns()
         trees = pmap((arg)->tree_builder(XS, Y, opt), 1:opt.n_trees)
