@@ -6,19 +6,21 @@ struct Options
     max_depth::Int
     min_samples_leaf::Int
     min_samples_split::Int
+    bootstrapping::Float64
     beta::Float64
     gamma::Bool
 
-    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, beta, gamma)
+    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, bootstrapping, beta, gamma)
 
         @assert n_trees >= 1
         @assert n_subfeat >= 1
         @assert n_thresholds >= 1
         @assert min_samples_leaf >= 1
         @assert min_samples_split >= 1
+        @assert 0.0 <= bootstrapping <= 1.0
         @assert 0 <= beta <= 1
 
-        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, beta, gamma)
+        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, bootstrapping, beta, gamma)
 
     end
 
@@ -223,7 +225,9 @@ end
 
 function tree_builder(X::SharedArray{Float32,2}, Y::BitArray{1}, opt::Options)
 
-    root = Node(1, collect(1:size(X, 1)), collect(1:size(X, 2)))
+    samples = opt.bootstrapping > 0.0 ? sort(rand(1:size(X, 1), round(Int, opt.bootstrapping * size(X, 1)))) : collect(1:size(X, 1))
+
+    root = Node(1, samples, collect(1:size(X, 2)))
 
     stack = Node[root]
     while length(stack) > 0

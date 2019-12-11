@@ -79,6 +79,7 @@ FlattenModel(X, Y;
     min_samples_leaf::Int=1,
     min_samples_split::Int=2,
     description::String="none",
+    bootstrapping::Float64=0.0,
     beta::Float64=0.5,
     gamma::Bool=false
     ) =
@@ -91,6 +92,7 @@ FlattenModel(X, Y;
                 max_depth,
                 min_samples_leaf,
                 min_samples_split,
+                bootstrapping,
                 beta,
                 gamma
                 ),
