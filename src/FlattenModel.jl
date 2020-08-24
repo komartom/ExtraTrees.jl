@@ -143,7 +143,7 @@ function (model::FlattenModel)(X::Matrix{Float32})
 end
 
 
-function (model::FlattenModel)(XS::SharedArray{Float32}, range::UnitRange{Int64})
+function (model::FlattenModel)(XS::SharedArray{Float32,2}, range::UnitRange{Int64})
 
     @assert model.metadata.n_features == size(XS, 2)
 
@@ -162,7 +162,7 @@ function (model::FlattenModel)(XS::SharedArray{Float32}, range::UnitRange{Int64}
 end
 
 
-function (model::FlattenModel)(XS::SharedArray{Float32})
+function (model::FlattenModel)(XS::SharedArray{Float32,2})
 
     @assert model.metadata.n_features == size(XS, 2)
 
