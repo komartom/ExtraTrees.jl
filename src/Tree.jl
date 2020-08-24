@@ -6,16 +6,18 @@ struct Options
     max_depth::Int
     min_samples_leaf::Int
     min_samples_split::Int
+    subsampling_ratio::Float64
 
-    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split)
+    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, subsampling_ratio)
 
         @assert n_trees >= 1
         @assert n_subfeat >= 1
         @assert n_thresholds >= 1
         @assert min_samples_leaf >= 1
         @assert min_samples_split >= 1
+        @assert 0.0 < subsampling_ratio <= 1.0
 
-        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split)
+        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, subsampling_ratio)
 
     end
 
@@ -216,7 +218,9 @@ end
 
 function tree_builder(X::SharedArray{Float32,2}, Y::BitArray{1}, opt::Options)
 
-    root = Node(1, collect(1:size(X, 1)), collect(1:size(X, 2)))
+    samples = opt.subsampling_ratio < 1.0 ? sort(rand(1:size(X, 1), round(Int, opt.subsampling_ratio * size(X, 1)))) : collect(1:size(X, 1))
+
+    root = Node(1, samples, collect(1:size(X, 2)))
 
     stack = Node[root]
     while length(stack) > 0

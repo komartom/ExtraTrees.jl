@@ -78,6 +78,7 @@ FlattenModel(X, Y;
     max_depth::Int=-1,
     min_samples_leaf::Int=1,
     min_samples_split::Int=2,
+    subsampling_ratio::Float64=1.0,
     description::String="none"
     ) =
     FlattenModel(
@@ -88,7 +89,8 @@ FlattenModel(X, Y;
                 n_thresholds,
                 max_depth,
                 min_samples_leaf,
-                min_samples_split
+                min_samples_split,
+                subsampling_ratio
                 ),
             description
         )
