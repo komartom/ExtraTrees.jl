@@ -6,18 +6,17 @@ struct Options
     max_depth::Int
     min_samples_leaf::Int
     min_samples_split::Int
-    subsampling_ratio::Float64
+    random_forest::Bool
 
-    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, subsampling_ratio)
+    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, random_forest)
 
         @assert n_trees >= 1
         @assert n_subfeat >= 1
         @assert n_thresholds >= 1
         @assert min_samples_leaf >= 1
         @assert min_samples_split >= 1
-        @assert 0.0 < subsampling_ratio <= 1.0
 
-        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, subsampling_ratio)
+        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, random_forest)
 
     end
 
@@ -103,7 +102,11 @@ function entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, th
 end
 
 
-function free!(node)
+function free!(node, opt)
+
+    if opt.random_forest
+        node.probability = (node.probability > 0.5f0) ? 1.0f0 : 0.0f0
+    end
 
     if isdefined(node, :features)
         node.features = Int64[]
@@ -131,7 +134,7 @@ function split!(node, X, Y, opt)
         node.probability == 0.0f0 ||
         n_samples < opt.min_samples_split ||
         n_samples == opt.min_samples_leaf
-        free!(node)
+        free!(node, opt)
         return
     end
 
@@ -171,8 +174,11 @@ function split!(node, X, Y, opt)
             continue
         end
 
-        for tt in 1:opt.n_thresholds
-            threshold = minv + (maxv - minv) * rand(Float32)
+        thresholds = opt.random_forest 
+            ? collect(minv:((maxv - minv) / opt.n_thresholds):maxv)[2:end]
+            : [minv + (maxv - minv) * rand(Float32) for rr in 1:opt.n_thresholds]
+
+        for threshold in thresholds
             split = entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, threshold)
             if best_split.cost > split.cost
                 best_split = split
@@ -186,7 +192,7 @@ function split!(node, X, Y, opt)
     if best_split.feature == 0 ||
         best_split.n_left < opt.min_samples_leaf ||
         best_split.n_right < opt.min_samples_leaf
-        free!(node)
+        free!(node, opt)
         return
     end
 
@@ -209,7 +215,7 @@ function split!(node, X, Y, opt)
     node.left = Node(node.depth + 1, left_samples, node.features[1:last_nonconst_feat])
     node.right = Node(node.depth + 1, right_samples, node.features[1:last_nonconst_feat])
 
-    free!(node)
+    free!(node, opt)
 
     return
 
@@ -218,7 +224,7 @@ end
 
 function tree_builder(X::SharedArray{Float32,2}, Y::BitArray{1}, opt::Options)
 
-    samples = opt.subsampling_ratio < 1.0 ? sort(rand(1:size(X, 1), round(Int, opt.subsampling_ratio * size(X, 1)))) : collect(1:size(X, 1))
+    samples = opt.random_forest ? sort(rand(1:size(X, 1), size(X, 1))) : collect(1:size(X, 1))
 
     root = Node(1, samples, collect(1:size(X, 2)))
 

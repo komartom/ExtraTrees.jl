@@ -49,7 +49,7 @@ Model(X, Y;
     max_depth::Int=-1,
     min_samples_leaf::Int=1,
     min_samples_split::Int=2,
-    subsampling_ratio::Float64=1.0,
+    random_forest::Bool=false,
     description::String="none"
     ) =
     Model(X, Y,
@@ -60,7 +60,7 @@ Model(X, Y;
             max_depth,
             min_samples_leaf,
             min_samples_split,
-            subsampling_ratio
+            random_forest
             ),
         description
     )
