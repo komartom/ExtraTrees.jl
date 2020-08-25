@@ -174,9 +174,9 @@ function split!(node, X, Y, opt)
             continue
         end
 
-        thresholds = opt.random_forest 
+        thresholds = (opt.random_forest 
             ? collect(minv:((maxv - minv) / opt.n_thresholds):maxv)[2:end]
-            : [minv + (maxv - minv) * rand(Float32) for rr in 1:opt.n_thresholds]
+            : [minv + (maxv - minv) * rand(Float32) for rr in 1:opt.n_thresholds])
 
         for threshold in thresholds
             split = entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, threshold)
