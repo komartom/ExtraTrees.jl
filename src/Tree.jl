@@ -6,17 +6,20 @@ struct Options
     max_depth::Int
     min_samples_leaf::Int
     min_samples_split::Int
-    random_forest::Bool
+    rand_thresholds::Bool
+    soft_leaf_score::Bool
+    bagging::Float64
 
-    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, random_forest)
+    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, rand_thresholds, soft_leaf_score, bagging)
 
         @assert n_trees >= 1
         @assert n_subfeat >= 1
         @assert n_thresholds >= 1
         @assert min_samples_leaf >= 1
         @assert min_samples_split >= 1
+        @assert bagging >= 0.0
 
-        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, random_forest)
+        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, rand_thresholds, soft_leaf_score, bagging)
 
     end
 
@@ -104,7 +107,7 @@ end
 
 function free!(node, opt)
 
-    if opt.random_forest
+    if !opt.soft_leaf_score
         node.probability = (node.probability > 0.5f0) ? 1.0f0 : 0.0f0
     end
 
@@ -174,9 +177,9 @@ function split!(node, X, Y, opt)
             continue
         end
 
-        thresholds = (opt.random_forest 
-            ? collect(minv:((maxv - minv) / opt.n_thresholds):maxv)[2:end] 
-            : [minv + (maxv - minv) * rand(Float32) for rr in 1:opt.n_thresholds])
+        thresholds = (opt.rand_thresholds 
+            ? rand(Float32, opt.n_thresholds) .* (maxv - minv) .+ minv
+            : collect(minv:((maxv - minv) / opt.n_thresholds):maxv)[2:end])
 
         for threshold in thresholds
             split = entropy_loss(V, y, n_pos_samples, n_neg_samples, n_samples, feature, threshold)
@@ -222,11 +225,17 @@ function split!(node, X, Y, opt)
 end
 
 
-function tree_builder(X::SharedArray{Float32,2}, Y::BitArray{1}, opt::Options)
+function tree_builder(X::SharedArray{Float32,2}, Y::AbstractArray{Bool}, opt::Options)
 
-    samples = opt.random_forest ? sort(rand(1:size(X, 1), size(X, 1))) : collect(1:size(X, 1))
+    n_samples, n_features = size(X)
 
-    root = Node(1, samples, collect(1:size(X, 2)))
+    samples = (opt.bagging > 0.0 
+        ? sort(rand(1:n_samples, round(Int, opt.bagging * n_samples))) 
+        : collect(1:n_samples))
+
+    features = collect(1:n_features)
+
+    root = Node(1, samples, features)
 
     stack = Node[root]
     while length(stack) > 0

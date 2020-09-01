@@ -78,7 +78,9 @@ FlattenModel(X, Y;
     max_depth::Int=-1,
     min_samples_leaf::Int=1,
     min_samples_split::Int=2,
-    random_forest::Bool=false,
+    rand_thresholds::Bool=true,
+    soft_leaf_score::Bool=true,
+    bagging::Float64=0.0,
     description::String="none"
     ) =
     FlattenModel(
@@ -90,7 +92,9 @@ FlattenModel(X, Y;
                 max_depth,
                 min_samples_leaf,
                 min_samples_split,
-                random_forest
+                rand_thresholds,
+                soft_leaf_score,
+                bagging
                 ),
             description
         )
