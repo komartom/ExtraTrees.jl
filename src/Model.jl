@@ -15,6 +15,7 @@ struct Model
     trees::Vector{Node}
     options::Options
     metadata::Metadata
+    oob_samples::Vector{BitArray{1}}
 
     function Model(X::T, Y::AbstractArray{Bool}, opt::Options, description::String="none") where T <: Union{Matrix{Float32}, SharedArray{Float32,2}}
 
@@ -23,7 +24,8 @@ struct Model
         XS = typeof(X) != SharedArray{Float32,2} ? SharedArray(X) : X
 
         starttime = time_ns()
-        trees = pmap((arg)->tree_builder(XS, Y, opt), 1:opt.n_trees)
+        tuples = pmap(t -> tree_builder(XS, Y, opt), 1:opt.n_trees)
+        trees, oob_samples = map(f -> getfield.(tuples, f), (1, 2))
         trainingtime = (time_ns() - starttime)/10^9 
 
         meta = Metadata(
@@ -35,7 +37,7 @@ struct Model
             mean([tree_depth(tree) for tree in trees])
             )
 
-        return new(trees, opt, meta)
+        return new(trees, opt, meta, oob_samples)
 
     end
 

@@ -61,10 +61,11 @@ struct FlattenModel
     trees::Vector{FlattenTree}
     options::Options
     metadata::Metadata
+    oob_samples::Vector{BitArray{1}}
 
     function FlattenModel(model::Model)
 
-        return new([tree_converter(tree) for tree in model.trees], model.options, model.metadata)
+        return new([tree_converter(tree) for tree in model.trees], model.options, model.metadata, model.oob_samples)
 
     end
 
@@ -151,8 +152,6 @@ end
 
 function (model::FlattenModel)(XS::SharedArray{Float32,2}, range::UnitRange{Int64})
 
-    @assert model.metadata.n_features == size(XS, 2)
-
     X = [XS[ss, :] for ss in range]
 
     probability = zeros(Float32, length(X))
@@ -168,9 +167,41 @@ function (model::FlattenModel)(XS::SharedArray{Float32,2}, range::UnitRange{Int6
 end
 
 
-function (model::FlattenModel)(XS::SharedArray{Float32,2})
+function oob_model(model::FlattenModel, XS::SharedArray{Float32,2}, range::UnitRange{Int64})
+
+    X = [XS[ss, :] for ss in range]
+
+    scores = zeros(Float32, length(X))
+    tree_count = zeros(Int, length(X))
+
+    for (tree, oob_samples) in zip(model.trees, model.oob_samples)
+        for xx in 1:length(X)
+            if oob_samples[range[xx]]
+                scores[xx] += tree(X[xx])
+                tree_count[xx] += 1
+            end
+        end
+    end
+
+    return scores ./ tree_count
+
+end
+
+
+function (model::FlattenModel)(XS::SharedArray{Float32,2}, range::UnitRange{Int64}, oob_samples::Bool)
+
+    return oob_samples ? oob_model(model, XS, range) : model(XS, range)
+
+end
+
+
+function (model::FlattenModel)(XS::SharedArray{Float32,2}, oob_samples::Bool=false)
 
     @assert model.metadata.n_features == size(XS, 2)
+
+    if oob_samples
+        @assert length(model.oob_samples[1]) == size(XS, 1)
+    end
 
     n_samples = size(XS, 1)
     n_workers = length(workers())
@@ -178,7 +209,7 @@ function (model::FlattenModel)(XS::SharedArray{Float32,2})
 
     ranges = [ start:((stop=start+step_size-1) < n_samples ? stop : n_samples) for start in 1:step_size:n_samples ]
 
-    results = pmap(range -> (first(range), model(XS, range)), ranges)
+    results = pmap(range -> (first(range), model(XS, range, oob_samples)), ranges)
 
     return vcat(last.(sort(results, by=x->x[1]))...)
 

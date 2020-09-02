@@ -233,9 +233,12 @@ function tree_builder(X::SharedArray{Float32,2}, Y::AbstractArray{Bool}, opt::Op
         ? sort(rand(1:n_samples, round(Int, opt.bagging * n_samples))) 
         : collect(1:n_samples))
 
-    features = collect(1:n_features)
+    oob_samples = trues(n_samples)
+    for ss in samples
+        oob_samples[ss] = false
+    end
 
-    root = Node(1, samples, features)
+    root = Node(1, samples, collect(1:n_features))
 
     stack = Node[root]
     while length(stack) > 0
@@ -246,7 +249,7 @@ function tree_builder(X::SharedArray{Float32,2}, Y::AbstractArray{Bool}, opt::Op
         end
     end
 
-    return root
+    return (root, oob_samples)
 
 end
 
