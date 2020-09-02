@@ -54,6 +54,7 @@ Model(X, Y;
     rand_thresholds::Bool=true,
     soft_leaf_score::Bool=true,
     bagging::Float64=0.0,
+    extra_pos_bagging::Float64=0.0,
     description::String="none"
     ) =
     Model(X, Y,
@@ -66,7 +67,8 @@ Model(X, Y;
             min_samples_split,
             rand_thresholds,
             soft_leaf_score,
-            bagging
+            bagging,
+            extra_pos_bagging,
             ),
         description
     )
