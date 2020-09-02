@@ -10,8 +10,9 @@ struct Options
     soft_leaf_score::Bool
     bagging::Float64
     extra_pos_bagging::Float64
+    exclude_samples::Set{Int}
 
-    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, rand_thresholds, soft_leaf_score, bagging, extra_pos_bagging)
+    function Options(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, rand_thresholds, soft_leaf_score, bagging, extra_pos_bagging, exclude_samples)
 
         @assert n_trees >= 1
         @assert n_subfeat >= 1
@@ -21,7 +22,7 @@ struct Options
         @assert bagging >= 0.0
         @assert extra_pos_bagging >= 0.0
 
-        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, rand_thresholds, soft_leaf_score, bagging, extra_pos_bagging)
+        return new(n_trees, n_subfeat, n_thresholds, max_depth, min_samples_leaf, min_samples_split, rand_thresholds, soft_leaf_score, bagging, extra_pos_bagging, exclude_samples)
 
     end
 
@@ -237,6 +238,10 @@ function tree_builder(X::SharedArray{Float32,2}, Y::AbstractArray{Bool}, opt::Op
 
     if opt.extra_pos_bagging > 0.0
         samples = sort(vcat(samples, rand(findall(Y), round(Int, opt.extra_pos_bagging * sum(Y)))))
+    end
+
+    if length(opt.exclude_samples) > 0
+        filter!(ss -> !(ss in opt.exclude_samples), samples)
     end
 
     oob_samples = trues(n_samples)
