@@ -130,6 +130,20 @@ function (tree::FlattenTree)(sample::Vector{Float32})
 end
 
 
+function (tree::FlattenTree)(sample::Vector{Float32}, level::Bool)
+
+    id = 1
+    level = 1
+    while tree.feature[id] > 0
+        id = sample[tree.feature[id]] < tree.threshold[id] ? tree.left[id] : tree.right[id]
+        level += 1
+    end
+
+    return (tree.threshold[id], level)
+
+end
+
+
 function (model::FlattenModel)(sample::Vector{Float32})
 
     @assert model.metadata.n_features == length(sample)
